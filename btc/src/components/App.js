@@ -134,7 +134,7 @@ class App extends Component {
     const { czas, btcPrice, newTimeArray, newBtcPriceArray } = this.state;
 
     return (
-      <> 
+      <>
         <div className="App">
           <VideoBg />
           <LivePrice />
