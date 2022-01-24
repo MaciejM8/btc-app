@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import "../styles/ChartComponentStyle.css";
 import Hover from "react-3d-hover";
 import Span30sAnim from "../components/Span30sAnim";
@@ -42,26 +42,30 @@ const AnimatedBoxPart = () => {
         .catch((error) => {
           console.log(error);
         });
-        console.log('wydobyto dane po 30 s')
-    } 
+      console.log("wydobyto dane po 30 s");
+    }
   }, [Counter]);
+
+  
 
   return (
     <>
+    <CounterContext.Provider value={[Counter]}>
       <Hover scale={1} perspective={580} speed={1000} max={20}>
         <div className="AnimatedBoxPart">
+          
           <Span30sAnim />
-
+          
           <span>
             <p>Actual Bitcoin Price</p>
-            
+
             {LivePrice}
           </span>
         </div>
       </Hover>
       <Hover scale={1} perspective={580} speed={1000} max={20}>
         <div className="AnimatedBoxPart">
-          <Span30sAnim number={Counter} />
+          <Span30sAnim />
           <span>
             <p>Daily Volume</p>
             {DayVolume}
@@ -70,55 +74,16 @@ const AnimatedBoxPart = () => {
       </Hover>
       <Hover scale={1} perspective={580} speed={1000} max={20}>
         <div className="AnimatedBoxPart">
-          <Span30sAnim number={Counter} />
+          <Span30sAnim />
           <span>
             <p>Total Market Cap</p>
             {MarketCap}
           </span>
         </div>
       </Hover>
+      </CounterContext.Provider>
     </>
   );
 };
-
+export const CounterContext = React.createContext();
 export default AnimatedBoxPart;
-
-// componentDidMount(){
-
-// setInterval(this.setData, 30000)
-
-// };
-// increment = () => {
-//   this.setState((prevState) => ({
-//     counter: this.state.counter + 1,
-//   }));
-//   if (this.state.counter === 30) {
-//     this.setState({
-//       counter: 0,
-//     });
-//   }
-// };
-
-// componentDidMount() {
-//   setInterval(this.increment, 1000);
-// }
-
-// setData = () => {
-//   fetch('/ticker').then(res => res.json()).then(data =>{
-//           console.log(data)
-//           this.setState(
-//             {
-//               LivePrice: data.bitcoin.usd.toLocaleString() +' $',
-//               DayVolume: Math.floor(data.bitcoin.usd_24h_vol).toLocaleString() +' $',
-//               MarketCap: Math.floor(data.bitcoin.usd_market_cap).toLocaleString() +' $',
-
-//             }
-
-//             )
-
-//         })
-//         .catch(error => {
-//           console.log(error)
-//         })
-
-//   };
