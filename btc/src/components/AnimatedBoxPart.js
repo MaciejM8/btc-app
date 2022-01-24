@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/ChartComponentStyle.css";
 import Hover from "react-3d-hover";
 import Span30sAnim from "../components/Span30sAnim";

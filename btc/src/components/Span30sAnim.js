@@ -4,7 +4,7 @@ import "../styles/ChartComponentStyle.css";
 
 const Span30sAnim = () => {
   const [Counter] = useContext(CounterContext);
-  const [State, setState] = useState({
+  const [State ] = useState({
     spanClass: "Loading",
     spanLoaded: "Loading Loaded",
     spanLoadingMiddle: "LoadingMiddle",
