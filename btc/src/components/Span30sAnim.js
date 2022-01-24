@@ -1,4 +1,4 @@
-import React, { useState,  useContext } from "react";
+import React, { useState, useContext } from "react";
 import { CounterContext } from "./AnimatedBoxPart";
 import "../styles/ChartComponentStyle.css";
 
@@ -28,4 +28,3 @@ const Span30sAnim = () => {
 };
 
 export default Span30sAnim;
-

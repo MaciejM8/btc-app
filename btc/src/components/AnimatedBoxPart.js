@@ -46,41 +46,38 @@ const AnimatedBoxPart = () => {
     }
   }, [Counter]);
 
-  
-
   return (
     <>
-    <CounterContext.Provider value={[Counter]}>
-      <Hover scale={1} perspective={580} speed={1000} max={20}>
-        <div className="AnimatedBoxPart">
-          
-          <Span30sAnim />
-          
-          <span>
-            <p>Actual Bitcoin Price</p>
+      <CounterContext.Provider value={[Counter]}>
+        <Hover scale={1} perspective={580} speed={1000} max={20}>
+          <div className="AnimatedBoxPart">
+            <Span30sAnim />
 
-            {LivePrice}
-          </span>
-        </div>
-      </Hover>
-      <Hover scale={1} perspective={580} speed={1000} max={20}>
-        <div className="AnimatedBoxPart">
-          <Span30sAnim />
-          <span>
-            <p>Daily Volume</p>
-            {DayVolume}
-          </span>
-        </div>
-      </Hover>
-      <Hover scale={1} perspective={580} speed={1000} max={20}>
-        <div className="AnimatedBoxPart">
-          <Span30sAnim />
-          <span>
-            <p>Total Market Cap</p>
-            {MarketCap}
-          </span>
-        </div>
-      </Hover>
+            <span>
+              <p>Actual Bitcoin Price</p>
+
+              {LivePrice}
+            </span>
+          </div>
+        </Hover>
+        <Hover scale={1} perspective={580} speed={1000} max={20}>
+          <div className="AnimatedBoxPart">
+            <Span30sAnim />
+            <span>
+              <p>Daily Volume</p>
+              {DayVolume}
+            </span>
+          </div>
+        </Hover>
+        <Hover scale={1} perspective={580} speed={1000} max={20}>
+          <div className="AnimatedBoxPart">
+            <Span30sAnim />
+            <span>
+              <p>Total Market Cap</p>
+              {MarketCap}
+            </span>
+          </div>
+        </Hover>
       </CounterContext.Provider>
     </>
   );
