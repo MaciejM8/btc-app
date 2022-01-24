@@ -2,19 +2,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  
   flex-direction: column;
-  text-align: center; 
-  
-  font-family: 'Ultra', serif;
-  
+  text-align: center;
+  font-family: "Ultra", serif;
 }
-.App h1{
-  
-  
+.App h1 {
   font-weight: 300;
   text-shadow: 0 0 7px rgb(0, 0, 0);
-  color:rgba(255, 255, 255, 0.747);
+  color: rgba(255, 255, 255, 0.747);
 }
-
-

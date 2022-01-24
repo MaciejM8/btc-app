@@ -3,27 +3,13 @@ import "../styles/ChartComponentStyle.css";
 
 class Span30sAnim extends Component {
   state = {
-    counter: 0,
+    counter: this.props.number,
     spanClass: "Loading",
     spanLoaded: "Loading Loaded",
     spanLoadingMiddle: "LoadingMiddle",
     spanClassMiddle: "LoadingMiddle Loaded",
   };
 
-  increment = () => {
-    this.setState((prevState) => ({
-      counter: this.state.counter + 1,
-    }));
-    if (this.state.counter === 30) {
-      this.setState({
-        counter: 0,
-      });
-    }
-  };
-
-  componentDidMount() {
-    setInterval(this.increment, 1000);
-  }
 
   render() {
     const {

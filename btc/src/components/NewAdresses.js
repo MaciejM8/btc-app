@@ -1,131 +1,124 @@
-import React from 'react'
-import { Line } from 'react-chartjs-2';
+import React from "react";
+import { Line } from "react-chartjs-2";
 
-import '../styles/ChartComponentStyle.css'
-
+import "../styles/ChartComponentStyle.css";
 
 const ActiveAdresses = (props) => {
-    return ( 
+  return (
     <div className="chartContainer">
-        <Line
-        
+      <Line
         data={{
-            labels: props.xAxes,
-            datasets:[
-              {
+          labels: props.xAxes,
+          datasets: [
+            {
               label: "BTC New Adresses",
               data: props.yAxes,
               borderWidth: 1.2,
               borderColor: "rgba(127, 255, 56, 0.7)",
               backgroundColor: "rgba(255, 82, 131, 1)",
-              yAxisID: 'y',
-          },
+              yAxisID: "y",
+            },
             {
               label: "BTC Price",
               data: props.btcPri,
               borderWidth: 1,
               borderColor: "rgba(255, 255, 255, 1)",
               backgroundColor: "rgba(101, 217, 255, 0.7)",
-              yAxisID: 'y1',
-        
-          }
-          
-        ]}}
-        options= {{
-          color:'white',
-            maintainAspectRatio: false,
-            responsive: true,
-            elements:{
-              point:{
-                radius:2,
-                pointStyle:"circle",
-                hitRadius: 100,
-                
-              
-              
-              }},
-            interaction: {
-              position: "nearest",
-              yAlline: "top",
-              
-              mode: 'index',
-              intersect: false,
-              bodyFont:{size:18,family:'Roboto'},
-              padding:10,
-              backgroundColor: "rgba(098,098,098, 0.85)",
-              caretSize:10,
-  
+              yAxisID: "y1",
             },
-              plugins: {
-                tooltip:{titleFont:{size:20,family:'Roboto'}},
-                title: {
-                  font:{size:30,weight:100,},
-                  
-                  display: true,
-                  text: 'NEW ADRESSES + BTC PRICE',
-                  color:'white',
-                },
-                zoom: {
-                  limits: {
-                    y1: {min: -35000, max: 80000},
-                    y: {min: 200000, max: 800000},},
-                  drag:false,
-                  pan: {
-                    enabled: true,
-                    mode: "xy",
-  
-                  },
-                  
-                  zoom: {
-                    drag: true,
-                    wheel: {
-                      enabled: true,
-                    },
-                    pinch: {
-                      enabled: true
-                    },
-                    mode: 'xy',
-                  }
-                }
-              },
-            
-            
-            scales: {
-              
-              y1: {
-                offset: true,
-                position: 'right',
-                max: 80000,
-                min: -35000,
-                grid:{display:false},
-                ticks: {
-                  color:'white'},
-              },
-              y:{
-                
-                min:200000,
-                max:800000,
-                grid:{display:false},
-                ticks: {
-                  color:'white'},
-              },
-              x: {
-                offset: true,
-                grid:{display:false},
-                ticks: {
-                  color:'white',
-                  // callback: function(value){
-                  //     const valueLegend = this.getLabelForValue(value);
-                  //     return valueLegend.slice(5,17);
-                      
-                  //   },
-                    
-                    },
-            }},
-            }} 
-        />
+          ],
+        }}
+        options={{
+          color: "white",
+          maintainAspectRatio: false,
+          responsive: true,
+          elements: {
+            point: {
+              radius: 2,
+              pointStyle: "circle",
+              hitRadius: 100,
+            },
+          },
+          interaction: {
+            position: "nearest",
+            yAlline: "top",
 
-    </div>);
-}
- 
+            mode: "index",
+            intersect: false,
+            bodyFont: { size: 18, family: "Roboto" },
+            padding: 10,
+            backgroundColor: "rgba(098,098,098, 0.85)",
+            caretSize: 10,
+          },
+          plugins: {
+            tooltip: { titleFont: { size: 20, family: "Roboto" } },
+            title: {
+              font: { size: 30, weight: 100 },
+
+              display: true,
+              text: "NEW ADRESSES + BTC PRICE",
+              color: "white",
+            },
+            zoom: {
+              limits: {
+                y1: { min: -35000, max: 80000 },
+                y: { min: 200000, max: 800000 },
+              },
+              drag: false,
+              pan: {
+                enabled: true,
+                mode: "xy",
+              },
+
+              zoom: {
+                drag: true,
+                wheel: {
+                  enabled: true,
+                },
+                pinch: {
+                  enabled: true,
+                },
+                mode: "xy",
+              },
+            },
+          },
+
+          scales: {
+            y1: {
+              offset: true,
+              position: "right",
+              max: 80000,
+              min: -35000,
+              grid: { display: false },
+              ticks: {
+                color: "white",
+              },
+            },
+            y: {
+              min: 200000,
+              max: 800000,
+              grid: { display: false },
+              ticks: {
+                color: "white",
+              },
+            },
+            x: {
+              offset: true,
+              grid: { display: false },
+              ticks: {
+                color: "white",
+                // callback: function(value){
+                //     const valueLegend = this.getLabelForValue(value);
+                //     return valueLegend.slice(5,17);
+
+                //   },
+              },
+            },
+          },
+        }}
+      />
+    </div>
+  );
+};
+
 export default ActiveAdresses;
