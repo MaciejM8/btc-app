@@ -22,3 +22,4 @@ yarn-error.log*
 /to do
 /__pycache__
 /venv
+./app.py
