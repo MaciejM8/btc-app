@@ -1,10 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 
 const ChartDate = (props) => {
-  // trzeba zmienic tablice czas odcinajac od Value w dol z wylaczeniem value
-  // this.setState(prevState => {
-  //     return {foo: {...prevState.foo, a: "updated"}};
-  // });
+  const [value, setValue] = useState([]);
+
+  const handleChange = (e) => {
+    console.log(`state changed ${e.target.value}`);
+    setValue(e.target.value);
+  };
+
+  const handleClick = () => {
+    props.setDateValue(value);
+
+    // let indexCutter = time.indexOf(value);
+    // let newBtcPriceArray = btcPrice.slice(indexCutter);
+    // let targetTime = time.slice(indexCutter);
+
+    // setNewBtcPriceArray(newBtcPriceArray);
+    // setNewTimeArray(targetTime);
+  };
 
   return (
     <div className="ChartDate">
@@ -13,14 +26,14 @@ const ChartDate = (props) => {
       <input
         min="2009-01-03"
         max={props.CurrentDate}
-        value={props.Value}
-        onChange={props.onChange}
+        value={value}
+        onChange={handleChange}
         onKeyDown={(e) => e.preventDefault}
         className="InputDate"
         type="date"
       />
 
-      <button onClick={props.onClick} className="submitBtn">
+      <button onClick={handleClick} className="submitBtn">
         Submit
       </button>
     </div>

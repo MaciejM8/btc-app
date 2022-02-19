@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import "../styles/App.css";
 
 import FearAndGreed from "./FearAndGreed";
@@ -16,76 +16,73 @@ import { Chart, defaults } from "react-chartjs-2";
 
 import zoomPlugin from "chartjs-plugin-zoom";
 
-class App extends Component {
-  state = {
-    czas: [],
-    activeAd: [],
-    btcPrice: [],
-    feesRate: [],
-    hashRate: [],
-    newAd: [],
+const App = () => {
+  const [time, setTime] = useState([]);
+  const [activeAd, setActiveAd] = useState([]);
+  const [btcPrice, setBtcPrice] = useState([]);
+  const [feesRate, setFeesRate] = useState([]);
+  const [hashRate, setHashRate] = useState([]);
+  const [newAd, setNewAd] = useState([]);
 
-    newTimeArray: [],
-    newBtcPriceArray: [],
+  // test ustawienia stanu poprzez dziecko i wyslanie danych z dziecka do rodzica
+  const [dateValue, setDateValue] = useState();
 
-    currentDate: new Date().toISOString().slice(0, 10),
-    targetArray: "",
-    value: "",
+  const [newTimeArray, setNewTimeArray] = useState([]);
+  const [newBtcPriceArray, setNewBtcPriceArray] = useState([]);
+  const [targetArray, setTargetArray] = useState("");
 
-    chartFont: (defaults.font.family = "'Ultra', serif"),
-    chartFontWeight: (defaults.font.weight = 100),
-    chartFontSize: (defaults.font.size = 13),
-    func: Chart.register(zoomPlugin),
-  };
+  const [currentDate] = useState(new Date().toISOString().slice(0, 10));
 
-  componentDidMount() {
-    fetch("/czas")
+  const [chartFont] = useState((defaults.font.family = "'Ultra', serif"));
+  const [chartFontWeight] = useState((defaults.font.weight = 100));
+  const [chartFontSize] = useState((defaults.font.size = 13));
+  const [func] = useState(Chart.register(zoomPlugin));
+
+  // proba wyodrebnienia nowej listy DAT z danych pozyskanych od dizecka
+  useEffect(() => {
+    console.log(dateValue);
+    // metoda filter aby sprawdzic czy wycinamy pozyskany poprzez fetch ARRAY TIME na nowa liste z odpowiednimi
+    // datami zgodnie z wybrana w dziecku data
+    console.log(time.filter((dates) => dates >= dateValue));
+  }, [dateValue]);
+
+  useEffect(() => {
+    fetch("/time")
       .then((res) => res.json())
       .then((data) => {
-        // console.log(data)
-        this.setState({
-          czas: data,
-        });
+        setTime(data);
       })
       .catch((error) => {
         console.log(error);
       });
-
     fetch("/activeAd")
       .then((res) => res.json())
       .then((data) => {
-        // console.log(data)
-        this.setState({ activeAd: data });
+        setActiveAd(data);
       })
       .catch((error) => {
         console.log(error);
       });
-
     fetch("/btcprice")
       .then((res) => res.json())
       .then((data) => {
-        // console.log(data)
-        this.setState({ btcPrice: data });
+        setBtcPrice(data);
       })
       .catch((error) => {
         console.log(error);
       });
-
     fetch("/feesrate")
       .then((res) => res.json())
       .then((data) => {
-        // console.log(data)
-        this.setState({ feesRate: data });
+        setFeesRate(data);
       })
       .catch((error) => {
         console.log(error);
       });
-
     fetch("/hashrate")
       .then((res) => res.json())
       .then((data) => {
-        // console.log(data)
-        this.setState({ hashRate: data });
+        setHashRate(data);
       })
       .catch((error) => {
         console.log(error);
@@ -93,93 +90,39 @@ class App extends Component {
     fetch("/new-ad")
       .then((res) => res.json())
       .then((data) => {
-        // console.log(data)
-        this.setState({ newAd: data });
+        setNewAd(data);
       })
       .catch((error) => {
         console.log(error);
       });
-  }
+    console.log("data collected");
+  }, []);
 
-  handleChange = (e) => {
-    e.preventDefault();
+  return (
+    <>
+      <div className="App">
+        <VideoBg />
+        <LivePrice />
+        <ChartDate setDateValue={setDateValue} CurrentDate={currentDate} />
 
-    this.setState({
-      value: e.target.value,
-    });
+        <BtcPriceChart
+          xAxes={newTimeArray.length > 0 ? newTimeArray : time}
+          yAxes={newBtcPriceArray.length > 0 ? newBtcPriceArray : btcPrice}
+        />
 
-    console.log();
-  };
+        <FeesRate xAxes={time} yAxes={feesRate} btcPri={btcPrice} />
 
-  handleClick = () => {
-    let arrayOfTime = this.state.czas;
+        <ActiveAdresses xAxes={time} yAxes={activeAd} btcPri={btcPrice} />
 
-    let slicer = this.state.value;
-    let indexCutter = this.state.czas.indexOf(slicer);
-    // console.log(indexCutter)
-    let newBtcPriceArray = this.state.btcPrice.slice(indexCutter);
-    let target = arrayOfTime.slice(indexCutter);
+        <NewAdresses xAxes={time} yAxes={newAd} btcPri={btcPrice} />
 
-    this.setState({
-      newTimeArray: target,
-      newBtcPriceArray: newBtcPriceArray,
-    });
-    console.log(this.state.newTimeArray);
-    console.log(this.state.czas);
-    console.log(this.state.btcPrice);
-    console.log(newBtcPriceArray);
-  };
+        <HashRateBtc xAxes={time} yAxes={hashRate} btcPri={btcPrice} />
 
-  render() {
-    const { czas, btcPrice, newTimeArray, newBtcPriceArray } = this.state;
-
-    return (
-      <>
-        <div className="App">
-          <VideoBg />
-          <LivePrice />
-          <ChartDate
-            onClick={this.handleClick}
-            onChange={this.handleChange}
-            CurrentDate={this.state.CurrentDate}
-          />
-
-          {/* <button onClick={this.handleClick}></button> */}
-          <BtcPriceChart
-            xAxes={newTimeArray.length > 0 ? newTimeArray : czas}
-            yAxes={newBtcPriceArray.length > 0 ? newBtcPriceArray : btcPrice}
-          />
-
-          <FeesRate
-            xAxes={this.state.czas}
-            yAxes={this.state.feesRate}
-            btcPri={this.state.btcPrice}
-          />
-
-          <ActiveAdresses
-            xAxes={this.state.czas}
-            yAxes={this.state.activeAd}
-            btcPri={this.state.btcPrice}
-          />
-
-          <NewAdresses
-            xAxes={this.state.czas}
-            yAxes={this.state.newAd}
-            btcPri={this.state.btcPrice}
-          />
-
-          <HashRateBtc
-            xAxes={this.state.czas}
-            yAxes={this.state.hashRate}
-            btcPri={this.state.btcPrice}
-          />
-
-          <FearAndGreed />
-        </div>
-        <Footer />
-      </>
-    );
-  }
-}
+        <FearAndGreed />
+      </div>
+      <Footer />
+    </>
+  );
+};
 
 export default App;

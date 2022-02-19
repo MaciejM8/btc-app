@@ -251,7 +251,7 @@ def FearAndGreed():
 
 
 
-@app.route('/czas', methods = ['GET'])
+@app.route('/time', methods = ['GET'])
 def Time():
     return jsonify(stringifiedTime2)
 

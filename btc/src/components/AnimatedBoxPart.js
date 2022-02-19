@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, createContext } from "react";
 import "../styles/ChartComponentStyle.css";
 import Hover from "react-3d-hover";
 import Span30sAnim from "../components/Span30sAnim";
 
 const AnimatedBoxPart = () => {
-  const [LivePrice, setLivePrice] = useState("Refresh / 30s ");
-  const [DayVolume, setDayVolume] = useState("Refresh / 30s ");
-  const [MarketCap, setMarketCap] = useState("Refresh / 30s ");
-  const [Counter, setCounter] = useState(0);
+  const [livePrice, setLivePrice] = useState("Refresh / 30s ");
+  const [dayVolume, setDayVolume] = useState("Refresh / 30s ");
+  const [marketCap, setMarketCap] = useState("Refresh / 30s ");
+  const [counter, setCounter] = useState(0);
 
   useEffect(() => {
     let intervalCounter = null;
 
-    if (Counter > 30) {
+    if (counter > 30) {
       setCounter(0);
     } else {
       intervalCounter = setInterval(() => {
@@ -23,10 +23,10 @@ const AnimatedBoxPart = () => {
     return () => {
       clearInterval(intervalCounter);
     };
-  }, [Counter]);
+  }, [counter]);
 
   useEffect(() => {
-    if (Counter > 30) {
+    if (counter > 30) {
       fetch("/ticker")
         .then((res) => res.json())
         .then((data) => {
@@ -42,13 +42,13 @@ const AnimatedBoxPart = () => {
         .catch((error) => {
           console.log(error);
         });
-      console.log("wydobyto dane po 30 s");
+      console.log("this data was collected after 30s");
     }
-  }, [Counter]);
+  }, [counter]);
 
   return (
     <>
-      <CounterContext.Provider value={[Counter]}>
+      <CounterContext.Provider value={[counter]}>
         <Hover scale={1} perspective={580} speed={1000} max={20}>
           <div className="AnimatedBoxPart">
             <Span30sAnim />
@@ -56,7 +56,7 @@ const AnimatedBoxPart = () => {
             <span>
               <p>Actual Bitcoin Price</p>
 
-              {LivePrice}
+              {livePrice}
             </span>
           </div>
         </Hover>
@@ -65,7 +65,7 @@ const AnimatedBoxPart = () => {
             <Span30sAnim />
             <span>
               <p>Daily Volume</p>
-              {DayVolume}
+              {dayVolume}
             </span>
           </div>
         </Hover>
@@ -74,7 +74,7 @@ const AnimatedBoxPart = () => {
             <Span30sAnim />
             <span>
               <p>Total Market Cap</p>
-              {MarketCap}
+              {marketCap}
             </span>
           </div>
         </Hover>
@@ -82,5 +82,5 @@ const AnimatedBoxPart = () => {
     </>
   );
 };
-export const CounterContext = React.createContext();
+export const CounterContext = createContext();
 export default AnimatedBoxPart;
