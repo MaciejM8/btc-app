@@ -1,6 +1,5 @@
 from flask import *
 from flask import Flask
-# from flask_cors import CORS
 from json import *
 from pycoingecko import CoinGeckoAPI
 from flask_apscheduler import APScheduler
@@ -9,10 +8,65 @@ from flask_apscheduler import APScheduler
 import requests
 import pandas as pd
 import math
+import re
+import tweepy
 
-from werkzeug.datastructures import Headers
+# tweepy twit search
+# mozna za pomoca .env przekazac klucz w bezpieczny sposob/ ukryty
 
 
+def get_client():
+    client = tweepy.Client(
+        "")
+    return client
+
+
+def search_tweets(query):
+    client = get_client()
+    tweets = client.search_recent_tweets(query=query, tweet_fields=['context_annotations', 'created_at'], media_fields=[
+                                         'preview_image_url'], expansions=["attachments.media_keys", "author_id"], max_results=20)
+    tweet_data = tweets.data
+
+    results = []
+    final_results = []
+
+    author_ids = []
+
+    if not tweet_data is None and len(tweet_data) > 0:
+        for tweet in tweet_data:
+            obj = {}
+            obj['text'] = tweet.text
+            # obj['urls'] = re.findall(
+            #     'https?:\/\/\S*', tweet.text)
+
+            obj['unique_author_id'] = tweet.author_id
+            obj["created_at"] = tweet.created_at
+            author_ids.append(tweet.author_id)
+
+            results.append(obj)
+        authors = client.get_users(ids=author_ids)
+        for author in authors.data:
+            tweet = filter(
+                lambda x: x['unique_author_id'] == author.id, results)
+            for tweet_username in tweet:
+                tweet_username['author_name'] = author.username
+                final_results.append(tweet_username)
+
+    else:
+        return []
+    return results
+
+
+tweets = search_tweets(
+    '"BREAKING Bitcoin" -is:reply -is:retweet lang:en')
+
+
+tweets_list = [tweet for tweet in tweets]
+tweets_list_unique_authors = list(
+    {v['unique_author_id']: v for v in tweets_list}.values())
+
+
+# flask app
 app = Flask(__name__)
 
 
@@ -23,69 +77,68 @@ class Config:
 app.config.from_object(Config())
 scheduler = APScheduler()
 
-# CORS(app)
+
+API_KEY = "25LFqJMAveksw8dSJ56by2lvxZw"
+coin_gecko_client = CoinGeckoAPI()
 
 
-API_KEY = ""
-cg = CoinGeckoAPI()
-
-
-# global timestamp
-# timestamp = '1620454400'
-
-# aktywne adresy
-acAd = False
-while acAd == False:
+# active adresses
+active_adresses_flag = False
+while active_adresses_flag == False:
     try:
 
-        print('****aktywne adresy****')
-        print('zbieranie danych')
+        print('****active adresses****')
+        print('collecting data..')
 
-        activeAdresses = 'https://api.glassnode.com/v1/metrics/addresses/active_count'
-        res = requests.get(activeAdresses,
-                           params={'a': 'BTC', 'api_key': API_KEY, 's': '1578167920'})
+        active_adresses_url = 'https://api.glassnode.com/v1/metrics/addresses/active_count'
+        active_adresses_search_result = requests.get(active_adresses_url,
+                                                     params={'a': 'BTC', 'api_key': API_KEY, 's': '1578167920'})
 
-        df = pd.read_json(res.text, convert_dates=['t'])
-        print('data i ilosc aktywnych adresow')
-        timeactive = df['t'].tolist()
-        activeAd = df['v'].tolist()
+        data_frame = pd.read_json(
+            active_adresses_search_result.text, convert_dates=['t'])
+        print('date and active adresses')
+        active_adresses_time_line = data_frame['t'].tolist()
+        active_adresses = data_frame['v'].tolist()
 
-        print("OK! ", timeactive[0], activeAd[0])
-        if(res.status_code == 200):
-            print('udalo sie wydobyc dane')
-            acAd = True
+        print("everything is OK! sample result is :",
+              active_adresses_time_line[0], active_adresses[0])
+        if(active_adresses_search_result.status_code == 200):
+            print('data collected successfully')
+            active_adresses_flag = True
             break
     except requests.ConnectionError as e:
         print("OOPS!! Connection Error. Make sure you are connected to Internet. Technical Details given below.\n")
         print(str(e))
 
 # btc price
-btcPr = False
-while btcPr == False:
+bitcoin_price_flag = False
+while bitcoin_price_flag == False:
 
     try:
         print('****btc price****')
-        print('zbieranie danych')
+        print('collecting data..')
 
-        BTCprice = 'https://api.glassnode.com/v1/metrics/market/price_usd_close'
-        res2 = requests.get(BTCprice,
-                            params={'a': 'BTC', 'api_key': API_KEY, 's': '1578167920'})
+        bitcoin_price_url = 'https://api.glassnode.com/v1/metrics/market/price_usd_close'
+        bitcoin_price_request_result = requests.get(bitcoin_price_url,
+                                                    params={'a': 'BTC', 'api_key': API_KEY, 's': '1578167920'})
 
-        df2 = pd.read_json(res2.text, convert_dates=['t'])
-        print('data i cena btc')
+        data_frame_2 = pd.read_json(
+            bitcoin_price_request_result.text, convert_dates=['t'])
+        print('date and bitcoin price')
 
-        time2 = df2['t'].tolist()
-        stringifiedTime2 = []
-        for i in time2:
+        bitcoin_price_time_line = data_frame_2['t'].tolist()
+        stringified_bitcoin_time_line = []
+        for i in bitcoin_price_time_line:
 
-            stringifiedTime2.append(i.isoformat()[0:10])
+            stringified_bitcoin_time_line.append(i.isoformat()[0:10])
 
-        btc_price = df2['v'].tolist()
+        bitcoin_price = data_frame_2['v'].tolist()
 
-        print("OK! ", time2[0], btc_price[0])
-        if(res2.status_code == 200):
-            print('udalo sie wydobyc dane')
-            btcPr = True
+        print("everything is OK! sample result is :",
+              bitcoin_price_time_line[0], bitcoin_price[0])
+        if(bitcoin_price_request_result.status_code == 200):
+            print('data collected successfully')
+            bitcoin_price_flag = True
             break
 
     except requests.ConnectionError as e:
@@ -96,109 +149,115 @@ while btcPr == False:
 # newadressees
 
 
-neAd = False
-while neAd == False:
+new_adresses_flag = False
+while new_adresses_flag == False:
     try:
         print('****new adresses****')
-        print('zbieranie danych')
+        print('collecting data..')
 
-        NewAd = 'https://api.glassnode.com/v1/metrics/addresses/new_non_zero_count'
-        res3 = requests.get(NewAd,
-                            params={'a': 'BTC', 'api_key': API_KEY, 's': '1578167920'})
+        new_adresses_url = 'https://api.glassnode.com/v1/metrics/addresses/new_non_zero_count'
+        new_adresses_search_result = requests.get(new_adresses_url,
+                                                  params={'a': 'BTC', 'api_key': API_KEY, 's': '1578167920'})
 
-        df3 = pd.read_json(res3.text, convert_dates=['t'])
-        print('data i nowe adresy')
-        time3 = df3['t'].tolist()
-        noweAdresy = df3['v'].tolist()
-        print("OK! ", time3[0], noweAdresy[0])
-        if(res3.status_code == 200):
-            print('udalo sie wydobyc dane')
-            neAd = True
+        data_frame_3 = pd.read_json(
+            new_adresses_search_result.text, convert_dates=['t'])
+        print('date and new adresses')
+        new_adresses_time_line = data_frame_3['t'].tolist()
+        new_adresses = data_frame_3['v'].tolist()
+        print("everything is OK! sample result is :",
+              new_adresses_time_line[0], new_adresses[0])
+        if(new_adresses_search_result.status_code == 200):
+            print('data collected successfully')
+            new_adresses_flag = True
             break
 
     except requests.ConnectionError as e:
-        print("ERROR , połączenie / odrzucenie / powiązane z jakością internetu.\n")
+        print("OOPS!! Connection Error. Make sure you are connected to Internet. Technical Details given below.\n")
         print(str(e))
 # btc hash rate
 
 #  fees rate
-fees = False
-while fees == False:
+fees_rate_flag = False
+while fees_rate_flag == False:
     try:
         print('****fees rate****')
-        print('zbieranie danych')
+        print('collecting data..')
 
-        fees = 'https://api.glassnode.com/v1/metrics/fees/volume_sum'
-        res4 = requests.get(fees,
-                            params={'a': 'btc', 'api_key': API_KEY, 's': '1578167920'})
+        fees_rate_flag_url = 'https://api.glassnode.com/v1/metrics/fees/volume_sum'
+        fees_rate_search_result = requests.get(fees_rate_flag_url,
+                                               params={'a': 'btc', 'api_key': API_KEY, 's': '1578167920'})
 
-        df4 = pd.read_json(res4.text, convert_dates=['t'])
-        print('data i nowe adresy')
-        time4 = df4['t'].tolist()
-        feesR = df4['v'].tolist()
-        feesRateFloored = [math.floor(i) for i in feesR]
-        print("OK! ", feesR[0], time4[0])
-        if(res4.status_code == 200):
-            print('udalo sie wydobyc dane')
-            fees = True
+        data_frame_4 = pd.read_json(
+            fees_rate_search_result.text, convert_dates=['t'])
+        print('date and fees rates')
+        fees_rate_time_line = data_frame_4['t'].tolist()
+        fees_rate = data_frame_4['v'].tolist()
+        fees_rate_floored = [math.floor(i) for i in fees_rate]
+        print("everything is OK! sample result is :",
+              fees_rate[0], fees_rate_time_line[0])
+        if(fees_rate_search_result.status_code == 200):
+            print('data collected successfully')
+            fees_rate_flag = True
             break
 
     except requests.ConnectionError as e:
         print("OOPS!! Connection Error. Make sure you are connected to Internet. Technical Details given below.\n")
         print(str(e))
         continue
-hashRate = False
-while hashRate == False:
+hash_rate_flag = False
+while hash_rate_flag == False:
     try:
         print('****btc hash rate****')
-        print('zbieranie danych')
+        print('collecting data..')
 
-        hashRate = 'https://api.glassnode.com/v1/metrics/mining/hash_rate_mean'
-        res5 = requests.get(hashRate,
-                            params={'a': 'BTC', 'api_key': API_KEY, 's': '1578167920'})
+        hash_rate_url = 'https://api.glassnode.com/v1/metrics/mining/hash_rate_mean'
+        hash_rate_search_result = requests.get(hash_rate_url,
+                                               params={'a': 'BTC', 'api_key': API_KEY, 's': '1578167920'})
 
-        listOfDict = res5.json()
-        hashrateValues = []
-        for i in listOfDict:
+        hash_rate_list = hash_rate_search_result.json()
+        hash_rate_values = []
+        for i in hash_rate_list:
             for v in i.values():
-                hashrateValues.append(v)
+                hash_rate_values.append(v)
 
-        withoutTime = hashrateValues[1::2]
-        print("OK! ", withoutTime[0])
+        hash_rate_without_timeline = hash_rate_values[1::2]
+        print("everything is OK! sample result is :",
+              hash_rate_without_timeline[0])
 
-        if(res5.status_code == 200):
-            print('udalo sie wydobyc dane')
-            hashRate = True
+        if(hash_rate_search_result.status_code == 200):
+            print('data collected successfully')
+            hash_rate_flag = True
             break
 
     except requests.ConnectionError as e:
-        print("ERROR , połączenie / odrzucenie / powiązane z jakością internetu.\n")
+        print("OOPS!! Connection Error. Make sure you are connected to Internet. Technical Details given below.\n")
         print(str(e))
 
 # fear and greed indeks
 # https://api.alternative.me/fng/
 
-fng = False
-while fng == False:
+fear_and_greed_flag = False
+while fear_and_greed_flag == False:
     try:
         print('****Fear and greed****')
-        print('zbieranie danych')
+        print('collecting data..collecting data..')
 
-        fng = 'https://api.alternative.me/fng/'
-        resFng = requests.get(fng)
+        fear_and_greed_url = 'https://api.alternative.me/fng/'
+        fear_and_greed_search_result = requests.get(fear_and_greed_url)
 
-        result = resFng.json()
+        result = fear_and_greed_search_result.json()
 
-        print("OK! ")
+        print("everything is OK! ")
 
-        if(resFng.status_code == 200):
-            print('udalo sie wydobyc dane')
-            fng = True
+        if(fear_and_greed_search_result.status_code == 200):
+            print('data collected successfully')
+            fear_and_greed_flag = True
             break
 
     except requests.ConnectionError as e:
-        print("ERROR , połączenie / odrzucenie / powiązane z jakością internetu.\n")
+        print("OOPS!! Connection Error. Make sure you are connected to Internet. Technical Details given below.\n")
         print(str(e))
+
 
 # end pointy z danymi
 
@@ -206,57 +265,52 @@ while fng == False:
 
 
 @scheduler.task('interval', id='do_job_1', seconds=30, misfire_grace_time=900)
-@app.route('/ticker', methods=['GET'])
+@app.route('/api/price_timed_module', methods=['GET'])
 def job1():
-    return cg.get_price(ids='bitcoin', vs_currencies='usd', include_market_cap=True, include_24hr_vol=True, include_24hr_change=True,)
+    return coin_gecko_client.get_price(ids='bitcoin', vs_currencies='usd', include_market_cap=True, include_24hr_vol=True, include_24hr_change=True,)
 
 
 {'bitcoin': {'usd': 3462.04}}
 
 
-# @app.route('/timestamp', methods = ['GET','POST'])
-# def TimestampFromReact():
-
-#     content = request.get_data(as_text=True)
-#     global timestamp
-#     timestamp = str(content)
-#     print(timestamp)
-#     return timestamp
-
-
-@app.route('/fearandgreed', methods=['GET'])
-def FearAndGreed():
+@app.route('/api/fear_and_greed_index', methods=['GET'])
+def fear_and_greed_index():
     return jsonify(result)
 
 
-@app.route('/time', methods=['GET'])
-def Time():
-    return jsonify(stringifiedTime2)
+@app.route('/api/chart_time_line', methods=['GET'])
+def chart_time_line():
+    return jsonify(stringified_bitcoin_time_line)
 
 
-@app.route('/hashrate', methods=['GET'])
-def BtcHashRate():
-    return jsonify(withoutTime)
+@app.route('/api/btc_hash_rate', methods=['GET'])
+def btc_hash_rate():
+    return jsonify(hash_rate_without_timeline)
 
 
-@app.route('/activeAd', methods=['GET'])
-def ActiveAd():
-    return jsonify(activeAd)
+@app.route('/api/btc_active_adresses', methods=['GET'])
+def btc_active_adresses():
+    return jsonify(active_adresses)
 
 
-@app.route('/btcprice', methods=['GET'])
-def BtcPrice():
-    return jsonify(btc_price)
+@app.route('/api/btc_price', methods=['GET'])
+def btc_price():
+    return jsonify(bitcoin_price)
 
 
-@app.route('/feesrate', methods=['GET'])
-def BtcFeesRate():
-    return jsonify(feesRateFloored)
+@app.route('/api/btc_fees_rate', methods=['GET'])
+def btc_fees_rate():
+    return jsonify(fees_rate_floored)
 
 
-@app.route('/new-ad', methods=['GET'])
-def newAdresses():
-    return jsonify(noweAdresy)
+@app.route('/api/btc_new_adresses', methods=['GET'])
+def btc_new_adresses():
+    return jsonify(new_adresses)
+
+
+@app.route('/api/jsonify_tweet_list', methods=['GET'])
+def jsonify_tweet_list():
+    return jsonify(tweets_list_unique_authors)
 
 
 scheduler.init_app(app)
@@ -268,6 +322,3 @@ if __name__ == '__main__':
 
 # $env:FLASK_ENV = "development"
 #   flask run
-
-
-# documentation Apscheduler : https://viniciuschiele.github.io/flask-apscheduler/rst/usage.html
