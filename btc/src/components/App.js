@@ -11,7 +11,7 @@ import Footer from "./Footer";
 import NewAdresses from "./NewAdresses";
 import VideoBg from "./VideoBg";
 import ChartDate from "./ChartDate";
-
+import TweetsContainer from "./TweetsContainer";
 import { Chart, defaults } from "react-chartjs-2";
 
 import zoomPlugin from "chartjs-plugin-zoom";
@@ -24,12 +24,14 @@ const App = () => {
   const [hashRate, setHashRate] = useState([]);
   const [newAd, setNewAd] = useState([]);
 
-  // test ustawienia stanu poprzez dziecko i wyslanie danych z dziecka do rodzica
   const [dateValue, setDateValue] = useState();
 
-  const [newTimeArray, setNewTimeArray] = useState([]);
   const [newBtcPriceArray, setNewBtcPriceArray] = useState([]);
-  const [targetArray, setTargetArray] = useState("");
+  const [newTimelineArray, setNewTimelineArray] = useState([]);
+  const [newActiveAdressesArray, setNewActiveAdressesArray] = useState([]);
+  const [newFeesRateArray, setNewFeesRateArray] = useState([]);
+  const [newHashRateArray, setNewHashRateArray] = useState([]);
+  const [newAressesArray, setNewAressesArray] = useState([]);
 
   const [currentDate] = useState(new Date().toISOString().slice(0, 10));
 
@@ -38,16 +40,24 @@ const App = () => {
   const [chartFontSize] = useState((defaults.font.size = 13));
   const [func] = useState(Chart.register(zoomPlugin));
 
-  // proba wyodrebnienia nowej listy DAT z danych pozyskanych od dizecka
   useEffect(() => {
-    console.log(dateValue);
-    // metoda filter aby sprawdzic czy wycinamy pozyskany poprzez fetch ARRAY TIME na nowa liste z odpowiednimi
-    // datami zgodnie z wybrana w dziecku data
-    console.log(time.filter((dates) => dates >= dateValue));
+    if (dateValue) {
+      console.log(`date event target value = ${dateValue}`);
+      // creating index value to cut every chart Array. we can use this methode because every array lenght is the same
+      let TimeLineArrayIndexCutter = time.indexOf(dateValue);
+      console.log(`time line index cutter value = ${TimeLineArrayIndexCutter}`);
+
+      setNewBtcPriceArray(btcPrice.slice(TimeLineArrayIndexCutter));
+      setNewTimelineArray(time.slice(TimeLineArrayIndexCutter));
+      setNewActiveAdressesArray(activeAd.slice(TimeLineArrayIndexCutter));
+      setNewFeesRateArray(feesRate.slice(TimeLineArrayIndexCutter));
+      setNewHashRateArray(hashRate.slice(TimeLineArrayIndexCutter));
+      setNewAressesArray(newAd.slice(TimeLineArrayIndexCutter));
+    }
   }, [dateValue]);
 
   useEffect(() => {
-    fetch("/time")
+    fetch("/api/chart_time_line")
       .then((res) => res.json())
       .then((data) => {
         setTime(data);
@@ -55,7 +65,7 @@ const App = () => {
       .catch((error) => {
         console.log(error);
       });
-    fetch("/activeAd")
+    fetch("/api/btc_active_adresses")
       .then((res) => res.json())
       .then((data) => {
         setActiveAd(data);
@@ -63,7 +73,7 @@ const App = () => {
       .catch((error) => {
         console.log(error);
       });
-    fetch("/btcprice")
+    fetch("/api/btc_price")
       .then((res) => res.json())
       .then((data) => {
         setBtcPrice(data);
@@ -71,7 +81,7 @@ const App = () => {
       .catch((error) => {
         console.log(error);
       });
-    fetch("/feesrate")
+    fetch("/api/btc_fees_rate")
       .then((res) => res.json())
       .then((data) => {
         setFeesRate(data);
@@ -79,7 +89,7 @@ const App = () => {
       .catch((error) => {
         console.log(error);
       });
-    fetch("/hashrate")
+    fetch("/api/btc_hash_rate")
       .then((res) => res.json())
       .then((data) => {
         setHashRate(data);
@@ -87,7 +97,7 @@ const App = () => {
       .catch((error) => {
         console.log(error);
       });
-    fetch("/new-ad")
+    fetch("/api/btc_new_adresses")
       .then((res) => res.json())
       .then((data) => {
         setNewAd(data);
@@ -102,21 +112,45 @@ const App = () => {
     <>
       <div className="App">
         <VideoBg />
-        <LivePrice />
+        <div className="LandingPageContainer">
+          <LivePrice />
+          <TweetsContainer />
+        </div>
+
         <ChartDate setDateValue={setDateValue} CurrentDate={currentDate} />
 
         <BtcPriceChart
-          xAxes={newTimeArray.length > 0 ? newTimeArray : time}
+          xAxes={newTimelineArray.length > 0 ? newTimelineArray : time}
           yAxes={newBtcPriceArray.length > 0 ? newBtcPriceArray : btcPrice}
         />
 
-        <FeesRate xAxes={time} yAxes={feesRate} btcPri={btcPrice} />
+        <FeesRate
+          xAxes={newTimelineArray.length > 0 ? newTimelineArray : time}
+          yAxes={newFeesRateArray.length > 0 ? newFeesRateArray : feesRate}
+          btcPri={newBtcPriceArray.length > 0 ? newBtcPriceArray : btcPrice}
+        />
 
-        <ActiveAdresses xAxes={time} yAxes={activeAd} btcPri={btcPrice} />
+        <ActiveAdresses
+          xAxes={newTimelineArray.length > 0 ? newTimelineArray : time}
+          yAxes={
+            newActiveAdressesArray.lenght > 0
+              ? newActiveAdressesArray
+              : activeAd
+          }
+          btcPri={newBtcPriceArray.length > 0 ? newBtcPriceArray : btcPrice}
+        />
 
-        <NewAdresses xAxes={time} yAxes={newAd} btcPri={btcPrice} />
+        <NewAdresses
+          xAxes={newTimelineArray.length > 0 ? newTimelineArray : time}
+          yAxes={newAressesArray.lenght > 0 ? newAressesArray : newAd}
+          btcPri={newBtcPriceArray.length > 0 ? newBtcPriceArray : btcPrice}
+        />
 
-        <HashRateBtc xAxes={time} yAxes={hashRate} btcPri={btcPrice} />
+        <HashRateBtc
+          xAxes={newTimelineArray.length > 0 ? newTimelineArray : time}
+          yAxes={newHashRateArray.lenght > 0 ? newHashRateArray : hashRate}
+          btcPri={newBtcPriceArray.length > 0 ? newBtcPriceArray : btcPrice}
+        />
 
         <FearAndGreed />
       </div>

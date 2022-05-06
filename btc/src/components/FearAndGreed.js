@@ -11,7 +11,7 @@ class FearAndGreed extends Component {
   };
 
   componentDidMount() {
-    fetch("/fearandgreed")
+    fetch("/api/fear_and_greed_index")
       .then((res) => res.json())
       .then((item) => {
         // console.log(item.data[0].value)

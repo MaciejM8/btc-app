@@ -27,7 +27,7 @@ const AnimatedBoxPart = () => {
 
   useEffect(() => {
     if (counter > 30) {
-      fetch("/ticker")
+      fetch("/api/price_timed_module")
         .then((res) => res.json())
         .then((data) => {
           console.log(data);
@@ -42,7 +42,7 @@ const AnimatedBoxPart = () => {
         .catch((error) => {
           console.log(error);
         });
-      console.log("this data was collected after 30s");
+      console.log("data was collected after 30s");
     }
   }, [counter]);
 

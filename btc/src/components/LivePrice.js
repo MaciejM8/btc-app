@@ -6,8 +6,6 @@ const LivePrice = () => {
   return (
     <>
       <div className="btcTicker">
-        <h1>"BTC APP"</h1>
-
         <AnimatedBoxDiv />
       </div>
     </>

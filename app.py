@@ -3,28 +3,32 @@ from flask import Flask
 from json import *
 from pycoingecko import CoinGeckoAPI
 from flask_apscheduler import APScheduler
-
-
 import requests
 import pandas as pd
 import math
 import re
 import tweepy
+import os
+from dotenv import load_dotenv
 
-# tweepy twit search
-# mozna za pomoca .env przekazac klucz w bezpieczny sposob/ ukryty
+
+load_dotenv()
 
 
 def get_client():
-    client = tweepy.Client(
-        "")
+
+    twitter_key = os.getenv('TWITTER_KEY')
+    if twitter_key is None:
+        raise Exception(
+            "Please provide Twitter bearer token into environmental variables")
+    client = tweepy.Client(twitter_key)
     return client
 
 
 def search_tweets(query):
     client = get_client()
     tweets = client.search_recent_tweets(query=query, tweet_fields=['context_annotations', 'created_at'], media_fields=[
-                                         'preview_image_url'], expansions=["attachments.media_keys", "author_id"], max_results=20)
+                                         'preview_image_url'], expansions=["attachments.media_keys", "author_id"], max_results=30)
     tweet_data = tweets.data
 
     results = []
@@ -36,9 +40,6 @@ def search_tweets(query):
         for tweet in tweet_data:
             obj = {}
             obj['text'] = tweet.text
-            # obj['urls'] = re.findall(
-            #     'https?:\/\/\S*', tweet.text)
-
             obj['unique_author_id'] = tweet.author_id
             obj["created_at"] = tweet.created_at
             author_ids.append(tweet.author_id)
@@ -64,10 +65,13 @@ tweets = search_tweets(
 tweets_list = [tweet for tweet in tweets]
 tweets_list_unique_authors = list(
     {v['unique_author_id']: v for v in tweets_list}.values())
-
+tweets_list_unique_authors = tweets_list_unique_authors[:20]
 
 # flask app
+
+
 app = Flask(__name__)
+application = app  # our hosting requires application in passenger_wsgi
 
 
 class Config:
@@ -77,8 +81,12 @@ class Config:
 app.config.from_object(Config())
 scheduler = APScheduler()
 
+# glass node api key
+api_key = os.getenv('API_KEY')
+if api_key is None:
+    raise Exception(
+        "Please provide glass node api key into environmental variables")
 
-API_KEY = "25LFqJMAveksw8dSJ56by2lvxZw"
 coin_gecko_client = CoinGeckoAPI()
 
 
@@ -92,7 +100,7 @@ while active_adresses_flag == False:
 
         active_adresses_url = 'https://api.glassnode.com/v1/metrics/addresses/active_count'
         active_adresses_search_result = requests.get(active_adresses_url,
-                                                     params={'a': 'BTC', 'api_key': API_KEY, 's': '1578167920'})
+                                                     params={'a': 'BTC', 'api_key': api_key, 's': '1578167920'})
 
         data_frame = pd.read_json(
             active_adresses_search_result.text, convert_dates=['t'])
@@ -120,7 +128,7 @@ while bitcoin_price_flag == False:
 
         bitcoin_price_url = 'https://api.glassnode.com/v1/metrics/market/price_usd_close'
         bitcoin_price_request_result = requests.get(bitcoin_price_url,
-                                                    params={'a': 'BTC', 'api_key': API_KEY, 's': '1578167920'})
+                                                    params={'a': 'BTC', 'api_key': api_key, 's': '1578167920'})
 
         data_frame_2 = pd.read_json(
             bitcoin_price_request_result.text, convert_dates=['t'])
@@ -157,7 +165,7 @@ while new_adresses_flag == False:
 
         new_adresses_url = 'https://api.glassnode.com/v1/metrics/addresses/new_non_zero_count'
         new_adresses_search_result = requests.get(new_adresses_url,
-                                                  params={'a': 'BTC', 'api_key': API_KEY, 's': '1578167920'})
+                                                  params={'a': 'BTC', 'api_key': api_key, 's': '1578167920'})
 
         data_frame_3 = pd.read_json(
             new_adresses_search_result.text, convert_dates=['t'])
@@ -185,7 +193,7 @@ while fees_rate_flag == False:
 
         fees_rate_flag_url = 'https://api.glassnode.com/v1/metrics/fees/volume_sum'
         fees_rate_search_result = requests.get(fees_rate_flag_url,
-                                               params={'a': 'btc', 'api_key': API_KEY, 's': '1578167920'})
+                                               params={'a': 'btc', 'api_key': api_key, 's': '1578167920'})
 
         data_frame_4 = pd.read_json(
             fees_rate_search_result.text, convert_dates=['t'])
@@ -212,7 +220,7 @@ while hash_rate_flag == False:
 
         hash_rate_url = 'https://api.glassnode.com/v1/metrics/mining/hash_rate_mean'
         hash_rate_search_result = requests.get(hash_rate_url,
-                                               params={'a': 'BTC', 'api_key': API_KEY, 's': '1578167920'})
+                                               params={'a': 'BTC', 'api_key': api_key, 's': '1578167920'})
 
         hash_rate_list = hash_rate_search_result.json()
         hash_rate_values = []
@@ -265,50 +273,47 @@ while fear_and_greed_flag == False:
 
 
 @scheduler.task('interval', id='do_job_1', seconds=30, misfire_grace_time=900)
-@app.route('/api/price_timed_module', methods=['GET'])
+@app.route('/price_timed_module', methods=['GET'])
 def job1():
     return coin_gecko_client.get_price(ids='bitcoin', vs_currencies='usd', include_market_cap=True, include_24hr_vol=True, include_24hr_change=True,)
 
 
-{'bitcoin': {'usd': 3462.04}}
-
-
-@app.route('/api/fear_and_greed_index', methods=['GET'])
+@app.route('/fear_and_greed_index', methods=['GET'])
 def fear_and_greed_index():
     return jsonify(result)
 
 
-@app.route('/api/chart_time_line', methods=['GET'])
+@app.route('/chart_time_line', methods=['GET'])
 def chart_time_line():
     return jsonify(stringified_bitcoin_time_line)
 
 
-@app.route('/api/btc_hash_rate', methods=['GET'])
+@app.route('/btc_hash_rate', methods=['GET'])
 def btc_hash_rate():
     return jsonify(hash_rate_without_timeline)
 
 
-@app.route('/api/btc_active_adresses', methods=['GET'])
+@app.route('/btc_active_adresses', methods=['GET'])
 def btc_active_adresses():
     return jsonify(active_adresses)
 
 
-@app.route('/api/btc_price', methods=['GET'])
+@app.route('/btc_price', methods=['GET'])
 def btc_price():
     return jsonify(bitcoin_price)
 
 
-@app.route('/api/btc_fees_rate', methods=['GET'])
+@app.route('/btc_fees_rate', methods=['GET'])
 def btc_fees_rate():
     return jsonify(fees_rate_floored)
 
 
-@app.route('/api/btc_new_adresses', methods=['GET'])
+@app.route('/btc_new_adresses', methods=['GET'])
 def btc_new_adresses():
     return jsonify(new_adresses)
 
 
-@app.route('/api/jsonify_tweet_list', methods=['GET'])
+@app.route('/jsonify_tweet_list', methods=['GET'])
 def jsonify_tweet_list():
     return jsonify(tweets_list_unique_authors)
 

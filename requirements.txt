@@ -1,0 +1,8 @@
+flask
+tweepy
+pycoingecko
+flask_apscheduler
+requests
+pandas
+Werkzeug
+python-dotenv
