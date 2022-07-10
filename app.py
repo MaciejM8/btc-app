@@ -241,7 +241,7 @@ while hash_rate_flag == False:
         print("OOPS!! Connection Error. Make sure you are connected to Internet. Technical Details given below.\n")
         print(str(e))
 
-# fear and greed indeks
+# fear and greed index
 # https://api.alternative.me/fng/
 
 fear_and_greed_flag = False
@@ -267,9 +267,9 @@ while fear_and_greed_flag == False:
         print(str(e))
 
 
-# end pointy z danymi
+# end points with data
 
-# btc price tiker from coingecko
+# btc price ticks from coingecko
 
 
 @scheduler.task('interval', id='do_job_1', seconds=30, misfire_grace_time=900)
